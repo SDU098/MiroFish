@@ -1,6 +1,6 @@
 """
-项目上下文管理
-用于在服务端持久化项目状态，避免前端在接口间传递大量数据
+Project context management
+Persists project state on the server side to avoid passing large amounts of data between API endpoints on the frontend
 """
 
 import os

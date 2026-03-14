@@ -1,11 +1,11 @@
 """
-OASIS Agent Profile生成器
-将Zep图谱中的实体转换为OASIS模拟平台所需的Agent Profile格式
+OASIS Agent Profile Generator
+Converts entities from the Zep graph into the Agent Profile format required by the OASIS simulation platform.
 
-优化改进：
-1. 调用Zep检索功能二次丰富节点信息
-2. 优化提示词生成非常详细的人设
-3. 区分个人实体和抽象群体实体
+Optimizations:
+1. Leverage Zep retrieval to enrich node information with a second pass
+2. Optimize prompts to generate highly detailed personas
+3. Distinguish between individual entities and abstract group entities
 """
 
 import json
@@ -27,23 +27,23 @@ logger = get_logger('mirofish.oasis_profile')
 
 @dataclass
 class OasisAgentProfile:
-    """OASIS Agent Profile数据结构"""
-    # 通用字段
+    """OASIS Agent Profile data structure"""
+    # Common fields
     user_id: int
     user_name: str
     name: str
     bio: str
     persona: str
     
-    # 可选字段 - Reddit风格
+    # Optional fields - Reddit style
     karma: int = 1000
     
-    # 可选字段 - Twitter风格
+    # Optional fields - Twitter style
     friend_count: int = 100
     follower_count: int = 150
     statuses_count: int = 500
     
-    # 额外人设信息
+    # Additional persona information
     age: Optional[int] = None
     gender: Optional[str] = None
     mbti: Optional[str] = None
@@ -51,17 +51,17 @@ class OasisAgentProfile:
     profession: Optional[str] = None
     interested_topics: List[str] = field(default_factory=list)
     
-    # 来源实体信息
+    # Source entity information
     source_entity_uuid: Optional[str] = None
     source_entity_type: Optional[str] = None
     
     created_at: str = field(default_factory=lambda: datetime.now().strftime("%Y-%m-%d"))
     
     def to_reddit_format(self) -> Dict[str, Any]:
-        """转换为Reddit平台格式"""
+        """Convert to Reddit platform format"""
         profile = {
             "user_id": self.user_id,
-            "username": self.user_name,  # OASIS 库要求字段名为 username（无下划线）
+            "username": self.user_name,  # OASIS library requires the field name 'username' (no underscore)
             "name": self.name,
             "bio": self.bio,
             "persona": self.persona,
@@ -69,7 +69,7 @@ class OasisAgentProfile:
             "created_at": self.created_at,
         }
         
-        # 添加额外人设信息（如果有）
+        # Add additional persona information (if available)
         if self.age:
             profile["age"] = self.age
         if self.gender:
@@ -82,14 +82,14 @@ class OasisAgentProfile:
             profile["profession"] = self.profession
         if self.interested_topics:
             profile["interested_topics"] = self.interested_topics
-        
+
         return profile
-    
+
     def to_twitter_format(self) -> Dict[str, Any]:
-        """转换为Twitter平台格式"""
+        """Convert to Twitter platform format"""
         profile = {
             "user_id": self.user_id,
-            "username": self.user_name,  # OASIS 库要求字段名为 username（无下划线）
+            "username": self.user_name,  # OASIS library requires the field name 'username' (no underscore)
             "name": self.name,
             "bio": self.bio,
             "persona": self.persona,

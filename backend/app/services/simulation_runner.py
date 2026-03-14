@@ -1,6 +1,6 @@
 """
-OASIS模拟运行器
-在后台运行模拟并记录每个Agent的动作，支持实时状态监控
+OASIS Simulation Runner
+Runs simulations in the background, records each Agent's actions, and supports real-time status monitoring
 """
 
 import os
@@ -25,15 +25,15 @@ from .simulation_ipc import SimulationIPCClient, CommandType, IPCResponse
 
 logger = get_logger('mirofish.simulation_runner')
 
-# 标记是否已注册清理函数
+# Flag indicating whether the cleanup function has been registered
 _cleanup_registered = False
 
-# 平台检测
+# Platform detection
 IS_WINDOWS = sys.platform == 'win32'
 
 
 class RunnerStatus(str, Enum):
-    """运行器状态"""
+    """Runner status"""
     IDLE = "idle"
     STARTING = "starting"
     RUNNING = "running"
@@ -46,7 +46,7 @@ class RunnerStatus(str, Enum):
 
 @dataclass
 class AgentAction:
-    """Agent动作记录"""
+    """Agent action record"""
     round_num: int
     timestamp: str
     platform: str  # twitter / reddit
@@ -73,7 +73,7 @@ class AgentAction:
 
 @dataclass
 class RoundSummary:
-    """每轮摘要"""
+    """Per-round summary"""
     round_num: int
     start_time: str
     end_time: Optional[str] = None
@@ -99,33 +99,33 @@ class RoundSummary:
 
 @dataclass
 class SimulationRunState:
-    """模拟运行状态（实时）"""
+    """Simulation run state (real-time)"""
     simulation_id: str
     runner_status: RunnerStatus = RunnerStatus.IDLE
     
-    # 进度信息
+    # Progress information
     current_round: int = 0
     total_rounds: int = 0
     simulated_hours: int = 0
     total_simulation_hours: int = 0
     
-    # 各平台独立轮次和模拟时间（用于双平台并行显示）
+    # Per-platform independent round and simulated time (for dual-platform parallel display)
     twitter_current_round: int = 0
     reddit_current_round: int = 0
     twitter_simulated_hours: int = 0
     reddit_simulated_hours: int = 0
     
-    # 平台状态
+    # Platform status
     twitter_running: bool = False
     reddit_running: bool = False
     twitter_actions_count: int = 0
     reddit_actions_count: int = 0
     
-    # 平台完成状态（通过检测 actions.jsonl 中的 simulation_end 事件）
+    # Platform completion status (detected via simulation_end events in actions.jsonl)
     twitter_completed: bool = False
     reddit_completed: bool = False
     
-    # 每轮摘要
+    # Per-round summaries
     rounds: List[RoundSummary] = field(default_factory=list)
     
     # 最近动作（用于前端实时展示）

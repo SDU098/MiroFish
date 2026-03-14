@@ -1,12 +1,12 @@
 """
-Report Agent服务
-使用LangChain + Zep实现ReACT模式的模拟报告生成
+Report Agent Service
+Implements ReACT-based simulation report generation using LangChain + Zep
 
-功能：
-1. 根据模拟需求和Zep图谱信息生成报告
-2. 先规划目录结构，然后分段生成
-3. 每段采用ReACT多轮思考与反思模式
-4. 支持与用户对话，在对话中自主调用检索工具
+Features:
+1. Generate reports based on simulation requirements and Zep graph data
+2. Plan the outline structure first, then generate content section by section
+3. Each section uses a multi-round ReACT (Reasoning + Acting) loop
+4. Supports conversational interaction with autonomous tool invocation
 """
 
 import os
@@ -34,18 +34,18 @@ logger = get_logger('mirofish.report_agent')
 
 class ReportLogger:
     """
-    Report Agent 详细日志记录器
-    
-    在报告文件夹中生成 agent_log.jsonl 文件，记录每一步详细动作。
-    每行是一个完整的 JSON 对象，包含时间戳、动作类型、详细内容等。
+    Report Agent Detailed Logger
+
+    Generates an agent_log.jsonl file in the report folder, recording each step in detail.
+    Each line is a complete JSON object containing timestamp, action type, detailed content, etc.
     """
     
     def __init__(self, report_id: str):
         """
-        初始化日志记录器
-        
+        Initialize the logger
+
         Args:
-            report_id: 报告ID，用于确定日志文件路径
+            report_id: Report ID, used to determine the log file path
         """
         self.report_id = report_id
         self.log_file_path = os.path.join(
@@ -55,31 +55,31 @@ class ReportLogger:
         self._ensure_log_file()
     
     def _ensure_log_file(self):
-        """确保日志文件所在目录存在"""
+        """Ensure the log file directory exists"""
         log_dir = os.path.dirname(self.log_file_path)
         os.makedirs(log_dir, exist_ok=True)
-    
+
     def _get_elapsed_time(self) -> float:
-        """获取从开始到现在的耗时（秒）"""
+        """Get elapsed time in seconds since start"""
         return (datetime.now() - self.start_time).total_seconds()
-    
+
     def log(
-        self, 
-        action: str, 
+        self,
+        action: str,
         stage: str,
         details: Dict[str, Any],
         section_title: str = None,
         section_index: int = None
     ):
         """
-        记录一条日志
-        
+        Record a log entry
+
         Args:
-            action: 动作类型，如 'start', 'tool_call', 'llm_response', 'section_complete' 等
-            stage: 当前阶段，如 'planning', 'generating', 'completed'
-            details: 详细内容字典，不截断
-            section_title: 当前章节标题（可选）
-            section_index: 当前章节索引（可选）
+            action: Action type, e.g. 'start', 'tool_call', 'llm_response', 'section_complete', etc.
+            stage: Current stage, e.g. 'planning', 'generating', 'completed'
+            details: Detailed content dictionary, not truncated
+            section_title: Current section title (optional)
+            section_index: Current section index (optional)
         """
         log_entry = {
             "timestamp": datetime.now().isoformat(),
@@ -92,12 +92,12 @@ class ReportLogger:
             "details": details
         }
         
-        # 追加写入 JSONL 文件
+        # Append to JSONL file
         with open(self.log_file_path, 'a', encoding='utf-8') as f:
             f.write(json.dumps(log_entry, ensure_ascii=False) + '\n')
     
     def log_start(self, simulation_id: str, graph_id: str, simulation_requirement: str):
-        """记录报告生成开始"""
+        """Record report generation start"""
         self.log(
             action="report_start",
             stage="pending",
@@ -105,52 +105,52 @@ class ReportLogger:
                 "simulation_id": simulation_id,
                 "graph_id": graph_id,
                 "simulation_requirement": simulation_requirement,
-                "message": "报告生成任务开始"
+                "message": "Report generation task started"
             }
         )
-    
+
     def log_planning_start(self):
-        """记录大纲规划开始"""
+        """Record outline planning start"""
         self.log(
             action="planning_start",
             stage="planning",
-            details={"message": "开始规划报告大纲"}
+            details={"message": "Starting report outline planning"}
         )
-    
+
     def log_planning_context(self, context: Dict[str, Any]):
-        """记录规划时获取的上下文信息"""
+        """Record context information obtained during planning"""
         self.log(
             action="planning_context",
             stage="planning",
             details={
-                "message": "获取模拟上下文信息",
+                "message": "Retrieved simulation context information",
                 "context": context
             }
         )
-    
+
     def log_planning_complete(self, outline_dict: Dict[str, Any]):
-        """记录大纲规划完成"""
+        """Record outline planning completion"""
         self.log(
             action="planning_complete",
             stage="planning",
             details={
-                "message": "大纲规划完成",
+                "message": "Outline planning completed",
                 "outline": outline_dict
             }
         )
-    
+
     def log_section_start(self, section_title: str, section_index: int):
-        """记录章节生成开始"""
+        """Record section generation start"""
         self.log(
             action="section_start",
             stage="generating",
             section_title=section_title,
             section_index=section_index,
-            details={"message": f"开始生成章节: {section_title}"}
+            details={"message": f"Starting section generation: {section_title}"}
         )
-    
+
     def log_react_thought(self, section_title: str, section_index: int, iteration: int, thought: str):
-        """记录 ReACT 思考过程"""
+        """Record ReACT reasoning process"""
         self.log(
             action="react_thought",
             stage="generating",
@@ -159,7 +159,7 @@ class ReportLogger:
             details={
                 "iteration": iteration,
                 "thought": thought,
-                "message": f"ReACT 第{iteration}轮思考"
+                "message": f"ReACT iteration {iteration} reasoning"
             }
         )
     
